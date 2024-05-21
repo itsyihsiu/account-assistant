@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 
 export const useAccountsStore = defineStore('accounts', {
     state: () => ({ accounts: [
-            { id: 1, name: '中國信託', transactions: [], initialBalance: 10000, displayBalance: true},
+            // { id: 1, name: '中國信託', transactions: [], initialBalance: 10000, displayBalance: true},
             // { id: 2, name: '玉山銀行', transactions: [], initialBalance: 10000},
             // { id: 1, name: '中國信託', transactions: [], initialBalance: 10000},
             // { id: 2, name: '玉山銀行', transactions: [], initialBalance: 10000},
@@ -10,7 +10,8 @@ export const useAccountsStore = defineStore('accounts', {
             // { id: 2, name: '玉山銀行', transactions: [], initialBalance: 10000},
             // { id: 1, name: '中國信託', transactions: [], initialBalance: 10000},
         ],
-        displayNetBalance: true
+        displayNetBalance: true,
+        accountTypes: ['現金', '銀行', '其他']
     }),
     getters: {
         balancedAccounts(state) {
@@ -22,5 +23,17 @@ export const useAccountsStore = defineStore('accounts', {
         netBalance(state) {
             return state.accounts.reduce((acc, account) => acc + account.initialBalance + account.transactions.reduce((acc, transaction) => acc + transaction.amount, 0), 0)
         }
+    },
+    actions: {
+        addAccount(accountData) {
+            this.accounts.push({ 
+                uuid: crypto.randomUUID(), 
+                name: accountData.name, 
+                transactions: [], 
+                initialBalance: accountData.initialBalance, 
+                displayBalance: true,
+                order: this.accounts.length
+            })
+        },
     },
 })
