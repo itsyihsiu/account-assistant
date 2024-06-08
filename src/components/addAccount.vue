@@ -1,11 +1,13 @@
 <script setup>
-    import { ref, reactive } from 'vue'
+    import { ref, reactive, onMounted } from 'vue'
+    import { useRoute, useRouter } from 'vue-router'
     import { useAccountsStore } from '../stores/accounts'
     import { useUIStore } from '../stores/ui'
     import DialogActionBar from './DialogActionBar.vue'
 
-    const accounts = useAccountsStore()
     const ui = useUIStore()
+    const accounts = useAccountsStore()
+    const router = useRouter()
 
     const ruleFormRef = ref()
 
@@ -59,16 +61,14 @@
     const onSubmit = async (formEl) => {
         await submitForm(formEl)
     }
-    
 </script>
 
 <template>
     <div class="flex justify-center">
         <el-form class="grow" ref="ruleFormRef" style="max-width: 600px" :model="ruleForm" :rules="rules" label-width="auto" status-icon>
             
-
             <el-form-item label="帳戶名稱" prop="name">
-                <el-input v-model="ruleForm.name" />
+                <el-input v-model="ruleForm.name" tabindex="1"/>
             </el-form-item>
     
             <el-form-item label="帳戶類型" prop="type">
@@ -89,7 +89,10 @@
         </el-form>
     </div>
 
-    <DialogActionBar confirmText="新增" confirmActionName="on-submit" @on-submit="onSubmit(ruleFormRef)"/>
+    <DialogActionBar 
+        confirmText="新增" confirmActionName="on-submit" @on-submit="onSubmit(ruleFormRef)"
+        cancelActionName="on-cancel" @on-cancel="ui.dialogVisible = false; $router.replace('/')"
+        />
 </template>
 
 <style scoped>

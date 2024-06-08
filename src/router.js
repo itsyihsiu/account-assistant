@@ -10,8 +10,8 @@ export const router = createRouter({
     routes: [
         { path: '/', component: Empty },
         { path: '/add-account', component: AddAccount },
-        { path: '/config-account', component: ConfigAccount },
-        { path: '/perform-transaction', component: PerformTransaction },
+        { path: '/config-account/:uuid', component: ConfigAccount },
+        { path: '/perform-transaction/:uuid', component: PerformTransaction },
         { path: '/show-transaction', component: ShowTransactions },
     ]
 });

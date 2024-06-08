@@ -1,5 +1,5 @@
 <script setup>
-    import { ref, reactive, computed } from 'vue'
+    import { ref, reactive, computed, onMounted, toRaw } from 'vue'
     import { useAccountsStore } from './stores/accounts'
     import { useUIStore } from './stores/ui'
     import { useRouter, useRoute } from 'vue-router'
@@ -14,16 +14,25 @@
 
     function toggleDisplayBalance(event) {
         if (event) {
-            event.currentTarget.classList.toggle('fa-eye-slash')
-            event.currentTarget.classList.toggle('fa-eye')
             let index = event.currentTarget.getAttribute('index')
-            console.log(index)
             accounts.accounts[index].displayBalance = !accounts.accounts[index].displayBalance
         }
     }
 
-    const dialogTitle = ref('')
+    function focusInput() {
+        try {
+            let firstInput = document.getElementById('app-dialog').querySelector('input')
+            if (firstInput) {
+                firstInput.focus()
+            }
+        } catch (error) {
+            console.warn(error)
+        }
+    }
 
+    onMounted(() => {
+        JSON.parse(localStorage.getItem('balanceKeeper')) && accounts.setAccounts(JSON.parse(localStorage.getItem('balanceKeeper')))
+    })
 </script>
 
 <template>
@@ -31,7 +40,7 @@
 
         <div class="text-2xl font-medium text-gray-700 text-center">理財小幫手</div>
 
-        <div class="my-5 flex items-center justify-center gap-5" v-show="accounts.accounts.length > 0">
+        <div class="my-5 mb-9 flex items-center justify-center gap-5" v-show="accounts.accounts.length > 0">
             <h1 class="cursor-pointer font-bold text-right flex items-center justify-center gap-5" 
                 :class="accounts.netBalance >= 0 ? '' : 'text-red-500'"
                 @click="toggleDisplayNetBalance"
@@ -48,27 +57,34 @@
         </el-empty>
 
         <div class="gap-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-            <el-card shadow="hover" v-for="(account, index) in accounts.balancedAccounts" :key="index" :index="index">
+
+            <el-card shadow="hover" 
+                v-for="(account, index) in accounts.balancedAccounts" 
+                :key="index" 
+                :index="index"
+                :uuid="account.uuid"
+            >
+
                 <div class="flex items-center justify-between">
                     <p class="text-md font-medium">{{ account.name }}</p>
-                    <i class="fa-solid fa-gear text-gray-300 cursor-pointer hover:text-gray-400"
-                        @click="dialogTitle = '設定'; ui.dialogVisible = true; router.push('/config-account');">
-                    </i>
+                    
                 </div>
-                <div class="pt-2 pb-3 flex items-center justify-between">
-                    <i class="fa-solid fa-eye text-gray-300 cursor-pointer hover:text-gray-400" :index="index"
-                        @click="toggleDisplayBalance"></i>
-                    <div class="text-right text-3xl font-medium">
-                        {{ account.displayBalance === true ? (account.balance).toLocaleString('en-US') : '********' }}
+
+                <div class="pt-2 pb-3 flex items-center justify-end">
+                    <div class="text-right text-3xl font-medium relative cursor-pointer" style="top: -12px;"
+                        @click="toggleDisplayBalance"
+                        :index="index"
+                    >
+                        {{ account.displayBalance === true ? (account.balance).toLocaleString('en-US') : '*****' }}
                     </div>
                 </div>
-                <div class="flex items-center justify-stretch">
-                    <el-button round class="grow"
-                        @click="dialogTitle = '紀錄'; ui.dialogVisible = true; router.push('/show-transaction');">
-                        紀錄
+                <div class="flex items-center justify-evenly">
+                    <el-button round class=""
+                        @click="ui.dialogTitle = '設定'; ui.dialogVisible = true; router.push('/config-account/'+account.uuid);">
+                        設定
                     </el-button>
                     <el-button type="primary" round class="grow"
-                        @click="dialogTitle = '修改'; ui.dialogVisible = true; router.push('/perform-transaction');">
+                        @click="ui.dialogTitle = '修改'; ui.dialogVisible = true; router.push('/perform-transaction/'+account.uuid);">
                         修改
                     </el-button>
                 </div>
@@ -82,7 +98,13 @@
     </div>
 
     <div>
-        <el-dialog center v-model="ui.dialogVisible" :title="ui.dialogTitle" width="90%" :show-close="false"
+        <el-dialog center
+            id="app-dialog"
+            :title="ui.dialogTitle"
+            v-model="ui.dialogVisible" 
+            width="90%" 
+            :show-close="false"
+            @opened="focusInput"
             :close-on-press-escape="false">
             <router-view />
         </el-dialog>
